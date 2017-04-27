@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
     public void input(float x_pos, float y_pos) {//录入问题的回调
         showShort("录入回调");
         problemList.add(new ProblemListBean("任务"+problemList.size(),"0",new ProblemCoordinate(""+x_pos/proportion,""+y_pos/proportion)));
-        myView.setRefresh(X,Y,problemList);
+        myView.setRefresh(X,Y,state,problemList);
 //        Intent intent = new Intent(this, ProblemEntryActivity.class);
 //        intent.putExtra("roomId", key);
 //        intent.putExtra("roomName", roomName);
@@ -231,7 +231,7 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
         showShort("修改回调");
         X = ""+x_pos;
         Y = ""+y_pos;
-        myView.setRefresh(X,Y,problemList);
+        myView.setRefresh(X,Y,state,problemList);
 //        Intent intent = new Intent();
 //        intent.putExtra("roomId", key);
 //        intent.putExtra("roomName", roomName);

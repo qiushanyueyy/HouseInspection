@@ -122,9 +122,10 @@ public class DrawingView extends View {
     /**
      * 刷新视图   （演示用）
      */
-    public void setRefresh(String X,String Y,List<ProblemListBean> problemList){
+    public void setRefresh(String X,String Y,String state,List<ProblemListBean> problemList){
         this.X = X;
         this.Y = Y;
+        this.state = state;
         this.problemList = problemList;
         postInvalidate();
     }
