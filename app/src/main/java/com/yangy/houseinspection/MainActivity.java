@@ -26,7 +26,7 @@ import com.yanzhenjie.permission.RationaleListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements PermissionListener ,IDrawingView {
+public class MainActivity extends AppCompatActivity implements PermissionListener, IDrawingView {
     private static Toast mToast;
     private float proportion;//跟后台约定的标准比例
     private String state;//问题状态
@@ -50,35 +50,42 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
             super.handleMessage(msg);
             if (msg.what == 0) {
                 if (bitmap != null) {
-                    if (!myView.setBitmapCoordinate(bitmap,MainActivity.this, areaCoordinate, problemList,proportion, type, X, Y, state)) {
+                    if (!myView.setBitmapCoordinate(bitmap, areaCoordinate, problemList, proportion, type, X, Y, state)) {
                         showShort("显示图纸失败");
                     }
                 }
             }
         }
     };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         andPermissions(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);//适配6.0权限
-        myView = (DrawingView)findViewById(R.id.myView);
+        myView = (DrawingView) findViewById(R.id.myView);
         myView.setInterfaceCallback(this);
         tv_xian = (TextView) findViewById(R.id.tv_xian);
         ll_bottom = (LinearLayout) findViewById(R.id.ll_bottom);
-        /**因为手机的坐标是从左上角开始计算，如果后台没有进行处理的话  可能返回的Y轴与要显示的效果正好相反  需要用图片高度减去Y轴得到正确的显示数据**/
+        /**因为手机的坐标原点是左上角，如果后台没有进行处理的话  可能返回的Y轴与要显示的效果正好相反  需要用图片高度减去Y轴得到正确的显示数据**/
         List<CoordinateBean> coordinate = new ArrayList<>();
-        coordinate.add(new CoordinateBean(200,100));
-        coordinate.add(new CoordinateBean(400,100));
-        coordinate.add(new CoordinateBean(400,300));
-        coordinate.add(new CoordinateBean(200,300));
-        areaCoordinate.add(new RoomListBean("1","厨房",coordinate,new CoordinateBean(300,200)));
+        coordinate.add(new CoordinateBean(190, 110));
+        coordinate.add(new CoordinateBean(400, 110));
+        coordinate.add(new CoordinateBean(400, 310));
+        coordinate.add(new CoordinateBean(190, 310));
+        areaCoordinate.add(new RoomListBean("1", "厨房", coordinate, new CoordinateBean(300, 200)));
         List<CoordinateBean> coordinates = new ArrayList<>();
-        coordinates.add(new CoordinateBean(600,50));
-        coordinates.add(new CoordinateBean(900,50));
-        coordinates.add(new CoordinateBean(900,300));
-        coordinates.add(new CoordinateBean(600,300));
-        areaCoordinate.add(new RoomListBean("2","次卧",coordinates,new CoordinateBean(750,180)));
+        coordinates.add(new CoordinateBean(620, 50));
+        coordinates.add(new CoordinateBean(920, 50));
+        coordinates.add(new CoordinateBean(920, 310));
+        coordinates.add(new CoordinateBean(620, 310));
+        areaCoordinate.add(new RoomListBean("2", "次卧", coordinates, new CoordinateBean(770, 180)));
+        List<CoordinateBean> coordinatess = new ArrayList<>();
+        coordinatess.add(new CoordinateBean(620, 320));
+        coordinatess.add(new CoordinateBean(980, 320));
+        coordinatess.add(new CoordinateBean(980, 630));
+        coordinatess.add(new CoordinateBean(620, 630));
+        areaCoordinate.add(new RoomListBean("3", "主卧", coordinatess, new CoordinateBean(800, 475)));
 //        /**模拟修改**/
 //        type = "modify";
 //        X = "200";
@@ -89,12 +96,13 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
 //        X = "200";
 //        Y = "300";
 //        state = "2";
-        if (!TextUtils.isEmpty(type)){
+        if (!TextUtils.isEmpty(type)) {
             tv_xian.setVisibility(View.GONE);
             ll_bottom.setVisibility(View.GONE);
         }
         loadImageNet();
     }
+
     /**
      * 获取图片bitmap对象
      */
@@ -106,20 +114,56 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
                 //跟后台约定宽度固定为1080进行不同尺寸屏幕的适配
                 float standard = (float) 1080.0;
                 //跟后台约定的标准比例
-                proportion = bitmap.getWidth()/standard;
+                proportion = bitmap.getWidth() / standard;
 //                //根据标准比例换算过后的图片高度
 //                float imgHeight =bitmap.getHeight()/proportion;
                 handler.sendEmptyMessage(0);
             }
         }).start();
     }
+
+    /**
+     * 录入问题的回调
+     *
+     * @param x_pos 选中的位置坐标
+     * @param y_pos 选中的位置坐标
+     */
+    @Override
+    public void input(float x_pos, float y_pos) {
+        problemList.add(new ProblemListBean("任务" + problemList.size(), "0", new ProblemCoordinate("" + x_pos / proportion, "" + y_pos / proportion)));
+        myView.setRefresh(X, Y, state, problemList);
+    }
+
+    /**
+     * 修改问题坐标的回调
+     *
+     * @param x_pos 选中的位置坐标
+     * @param y_pos 选中的位置坐标
+     */
+    @Override
+    public void modify(float x_pos, float y_pos) {
+        X = "" + x_pos;
+        Y = "" + y_pos;
+        myView.setRefresh(X, Y, state, problemList);
+    }
+
+    /**
+     * 选中问题的回调
+     *
+     * @param problemListBean 选中的问题的详细信息
+     */
+    @Override
+    public void problem(ProblemListBean problemListBean) {
+        showShort(problemListBean.getProblemId());
+    }
+
     /**
      * 短时间显示Toast
      */
     public void showShort(CharSequence message) {
-        if(mToast == null) {
+        if (mToast == null) {
             mToast = Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT);
-        }else{
+        } else {
             mToast.setText(message);
             mToast.setDuration(Toast.LENGTH_SHORT);
         }
@@ -133,13 +177,14 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
      **/
     private static final int REQUEST_CODE_PERMISSION_LOCATION = 100;
     private static final int REQUEST_CODE_SETTING = 300;
+
     /**
      * 申请权限
      */
-    public static void andPermissions(Activity activity, @NonNull String... permissions){
+    public static void andPermissions(Activity activity, @NonNull String... permissions) {
         if (Build.VERSION.SDK_INT >= 23) {
             // 先判断是否有权限。
-            if(AndPermission.hasPermission(activity, permissions)) {
+            if (AndPermission.hasPermission(activity, permissions)) {
                 // 有权限，直接do anything.
                 return;
             } else {
@@ -153,12 +198,14 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
             }
         }
     }
+
     private static RationaleListener rationaleListener = new RationaleListener() {
         @Override
-        public void showRequestPermissionRationale(int requestCode,Rationale rationale) {
+        public void showRequestPermissionRationale(int requestCode, Rationale rationale) {
             rationale.resume();
         }
     };
+
     @Override
     public void onSucceed(int requestCode, List<String> grantPermissions) {
         switch (requestCode) {
@@ -198,6 +245,7 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
 //            settingHandle.cancel();
         }
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[]
             grantResults) {
@@ -207,52 +255,4 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
         AndPermission.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
     }
 
-    @Override
-    public void input(float x_pos, float y_pos) {//录入问题的回调
-        showShort("录入回调");
-        problemList.add(new ProblemListBean("任务"+problemList.size(),"0",new ProblemCoordinate(""+x_pos/proportion,""+y_pos/proportion)));
-        myView.setRefresh(X,Y,state,problemList);
-//        Intent intent = new Intent(this, ProblemEntryActivity.class);
-//        intent.putExtra("roomId", key);
-//        intent.putExtra("roomName", roomName);
-//        intent.putExtra("houseNumberName", houseNumberName);
-//        intent.putExtra("buildingName",buildingName);
-//        intent.putExtra("houseNumberId", houseNumberId);
-//        intent.putExtra("taskSrc", taskSrc);
-//        intent.putExtra("taskId", taskId);
-//        intent.putExtra("X",""+x_pos);
-//        intent.putExtra("Y",""+y_pos);
-//        intent.putExtra("proportion", ""+proportion);
-//        startActivity(intent);
-    }
-
-    @Override
-    public void modify(float x_pos, float y_pos) {//修改的回调
-        showShort("修改回调");
-        X = ""+x_pos;
-        Y = ""+y_pos;
-        myView.setRefresh(X,Y,state,problemList);
-//        Intent intent = new Intent();
-//        intent.putExtra("roomId", key);
-//        intent.putExtra("roomName", roomName);
-//        intent.putExtra("houseNumberName", houseNumberName);
-//        intent.putExtra("buildingName",buildingName);
-//        intent.putExtra("houseNumberId", houseNumberId);
-//        intent.putExtra("taskSrc", taskSrc);
-//        intent.putExtra("taskId", taskId);
-//        intent.putExtra("X",""+x_pos);
-//        intent.putExtra("Y",""+y_pos);
-//        intent.putExtra("proportion", ""+proportion);
-//        setResult(ProblemEntryActivity.GET_DRAWING_VIEW, intent);
-//        finish();
-    }
-
-    @Override
-    public void problem(ProblemListBean problemListBean) {//选中问题的回调
-        showShort("问题回调"+problemListBean.getProblemId());
-//        Intent intent = new Intent(this, DetailsOfTheProblemActivity.class);
-//        intent.putExtra("problemList", problemList.get(i));
-//        startActivity(intent);
-//        return;
-    }
 }
