@@ -117,6 +117,16 @@ public class DrawingView extends View {
         matrix = new Matrix();
     }
 
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        viewWidth = w;
+        viewHeight = h;
+
+        mBottomBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        mCanvas = new Canvas(mBottomBitmap);
+    }
+
     /**
      * 设置接口回调
      *
@@ -141,7 +151,7 @@ public class DrawingView extends View {
      * 显示图片
      *
      * @param myImg           图片bitmap对象
-     * @param roomList          存放处理后房间名称信息
+     * @param roomList        存放处理后房间名称信息
      * @param taggingBeanList 存放处理后任务信息
      * @param roomListBeenEx  存放处理后的房间信息
      * @param type            see代表查看 modify代表修改  空代表问题录入
@@ -217,16 +227,6 @@ public class DrawingView extends View {
         } else {
             return false;
         }
-    }
-
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        viewWidth = w;
-        viewHeight = h;
-
-        mBottomBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        mCanvas = new Canvas(mBottomBitmap);
     }
 
     @Override
@@ -465,6 +465,5 @@ public class DrawingView extends View {
         getImageViewIneerSize(false);
         postInvalidate();
     }
-
 
 }
