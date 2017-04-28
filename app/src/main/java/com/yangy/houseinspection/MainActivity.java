@@ -22,7 +22,7 @@ import com.yangy.houseinspection.Drawing.DrawingView;
 import com.yangy.houseinspection.Drawing.IDrawingView;
 import com.yangy.houseinspection.Drawing.ProblemListBean;
 import com.yangy.houseinspection.Drawing.RoomListBean;
-import com.yangy.houseinspection.Drawing.WzBean;
+import com.yangy.houseinspection.Drawing.RoomBean;
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.PermissionListener;
 import com.yanzhenjie.permission.Rationale;
@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
     private List<RoomListBean> areaCoordinate = new ArrayList<>();//房间坐标系
     private List<ProblemListBean> problemList = new ArrayList<>();//任务坐标系
 
-    private List<WzBean> wzList = new ArrayList<>();//存放处理后房间名称信息
+    private List<RoomBean> roomList = new ArrayList<>();//存放处理后房间名称信息
     private List<TaggingBean> taggingBeanList = new ArrayList<>();//存放处理后任务信息
     public List<RoomListBean> roomListBeenEx = new ArrayList<>();//存放处理后的房间信息
 
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
             super.handleMessage(msg);
             if (msg.what == 0) {
                 if (bitmap != null) {
-                    if (!myView.setBitmapCoordinate(bitmap, wzList, taggingBeanList, roomListBeenEx, type, X, Y, state)) {
+                    if (!myView.setBitmapCoordinate(bitmap, roomList, taggingBeanList, roomListBeenEx, type, X, Y, state)) {
                         showShort("显示图纸失败");
                     }
                 }
@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
                     float standard = (float) 1080.0;
                     //跟后台约定的标准比例
                     proportion = bitmap.getWidth() / standard;
-                    wzList = CoordinateUtils.getWzBean(areaCoordinate, proportion);
+                    roomList = CoordinateUtils.getRoomBean(areaCoordinate, proportion);
                     taggingBeanList = CoordinateUtils.getTaggingBean(problemList, proportion);
                     roomListBeenEx = CoordinateUtils.getRoomListBeanList(areaCoordinate, proportion);
 //                //根据标准比例换算过后的图片高度

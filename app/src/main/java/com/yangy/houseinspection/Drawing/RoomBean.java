@@ -4,12 +4,12 @@ package com.yangy.houseinspection.Drawing;
  * 存放通过标准比例处理后房间名称的坐标
  * Created by yangy on 2017/04/27
  */
-public class WzBean {
+public class RoomBean {
     private String text;
     private float posX;
     private float posY;
 
-    public WzBean(String text, float posX, float posY) {
+    public RoomBean(String text, float posX, float posY) {
         this.text = text;
         this.posX = posX;
         this.posY = posY;

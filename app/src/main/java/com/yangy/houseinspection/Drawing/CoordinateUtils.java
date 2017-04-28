@@ -16,15 +16,15 @@ public class CoordinateUtils {
      * @param proportion      标准比例
      * @return 适配后的房间名称坐标
      */
-    public static List<WzBean> getWzBean(List<RoomListBean> area_coordinate, float proportion) {
-        List<WzBean> wzList = new ArrayList<>();
+    public static List<RoomBean> getRoomBean(List<RoomListBean> area_coordinate, float proportion) {
+        List<RoomBean> roomList = new ArrayList<>();
         //房间名称
         for (int i = 0; i < area_coordinate.size(); i++) {
             if (area_coordinate.get(i).getCenterCoordinate() != null) {
-                wzList.add(new WzBean(area_coordinate.get(i).getRoomName(), area_coordinate.get(i).getCenterCoordinate().getX() * proportion, area_coordinate.get(i).getCenterCoordinate().getY() * proportion));
+                roomList.add(new RoomBean(area_coordinate.get(i).getRoomName(), area_coordinate.get(i).getCenterCoordinate().getX() * proportion, area_coordinate.get(i).getCenterCoordinate().getY() * proportion));
             }
         }
-        return wzList;
+        return roomList;
     }
 
     /**

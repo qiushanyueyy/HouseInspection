@@ -35,7 +35,7 @@ public class DrawingView extends View {
     private static final int AREA_SIZE = 10;//小圆点半径
     private float INIT_SCALE = 1.0f;//记录初始缩放倍数
     public int mode = 0;
-    private List<WzBean> wzList = new ArrayList<>();//存放处理后房间名称的坐标
+    private List<RoomBean> roomList = new ArrayList<>();//存放处理后房间名称的坐标
     private List<TaggingBean> taggingBeanList = new ArrayList<>();//存放处理后任务信息
     public List<RoomListBean> roomListBeenEx = new ArrayList<>();//存放处理后的房间信息
     public String type;
@@ -75,11 +75,8 @@ public class DrawingView extends View {
     private int viewWidth = 480;//控件的宽度
     private int viewHeight = 800;
 
-    /**
-     * 图片的高度 （因为手机的坐标是从左上角开始计算，如果后台没有进行处理的话  可能返回的Y轴与要显示的效果正好相反  需要用控件高度减去Y轴得到正确的显示数据）
-     */
+    private float imgWidth = 480;//图片的宽度
     private float imgHeight = 800;
-    private float imgWidth = 480;
 
     private float x_down = 0;//记录触摸时的坐标
     private float y_down = 0;//记录触摸时的坐标
@@ -103,6 +100,9 @@ public class DrawingView extends View {
     }
 
 
+    /**
+     * 初始化
+     */
     private void init() {
         viewWidth = getMeasuredWidth();
         viewHeight = getMeasuredHeight();
@@ -141,7 +141,7 @@ public class DrawingView extends View {
      * 显示图片
      *
      * @param myImg           图片bitmap对象
-     * @param wzList          存放处理后房间名称信息
+     * @param roomList          存放处理后房间名称信息
      * @param taggingBeanList 存放处理后任务信息
      * @param roomListBeenEx  存放处理后的房间信息
      * @param type            see代表查看 modify代表修改  空代表问题录入
@@ -150,8 +150,8 @@ public class DrawingView extends View {
      * @param state           问题状态
      * @return true代表图片显示成功，false代表图片显示失败
      */
-    public boolean setBitmapCoordinate(Bitmap myImg, List<WzBean> wzList, List<TaggingBean> taggingBeanList, List<RoomListBean> roomListBeenEx, String type, String X, String Y, String state) {
-        this.wzList = wzList;
+    public boolean setBitmapCoordinate(Bitmap myImg, List<RoomBean> roomList, List<TaggingBean> taggingBeanList, List<RoomListBean> roomListBeenEx, String type, String X, String Y, String state) {
+        this.roomList = roomList;
         this.taggingBeanList = taggingBeanList;
         this.roomListBeenEx = roomListBeenEx;
         this.type = type;
@@ -241,13 +241,13 @@ public class DrawingView extends View {
         /** 房间名称 **/
         mTextSizeN = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14 / values[0], getResources().getDisplayMetrics());//根据缩放系数计算需要绘制的房间名称的字体大小
         mTextPaint.setTextSize(mTextSizeN);
-        for (WzBean wzBean : wzList) {
+        for (RoomBean roomBean : roomList) {
             //绘制显示房间名称的底部背景
             mTextPaint.setColor(Color.parseColor("#01B81B"));
-            mCanvas.drawRect(wzBean.getPosX() - (wzBean.getText().toString().length() * mTextSizeN) / 2 - 3, wzBean.getPosY() - (mTextSizeN / 2 + 3), wzBean.getPosX() + (wzBean.getText().toString().length() * mTextSizeN) / 2 + 3, wzBean.getPosY() + (mTextSizeN / 2 + 3), mTextPaint);
+            mCanvas.drawRect(roomBean.getPosX() - (roomBean.getText().toString().length() * mTextSizeN) / 2 - 3, roomBean.getPosY() - (mTextSizeN / 2 + 3), roomBean.getPosX() + (roomBean.getText().toString().length() * mTextSizeN) / 2 + 3, roomBean.getPosY() + (mTextSizeN / 2 + 3), mTextPaint);
             //绘制房间名称
             mTextPaint.setColor(Color.parseColor("#FFFFFF"));
-            mCanvas.drawText(wzBean.getText(), wzBean.getPosX() - (wzBean.getText().toString().length() * mTextSizeN) / 2, wzBean.getPosY() + (mTextSizeN / 2 - 3), mTextPaint);
+            mCanvas.drawText(roomBean.getText(), roomBean.getPosX() - (roomBean.getText().toString().length() * mTextSizeN) / 2, roomBean.getPosY() + (mTextSizeN / 2 - 3), mTextPaint);
         }
         /** 绘制多边形 **/
         mPaint.reset();//重置
