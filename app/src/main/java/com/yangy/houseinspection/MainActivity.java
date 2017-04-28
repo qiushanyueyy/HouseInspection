@@ -16,8 +16,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yangy.houseinspection.Drawing.CoordinateBean;
+import com.yangy.houseinspection.Drawing.CoordinateUtils;
+import com.yangy.houseinspection.Drawing.TaggingBean;
 import com.yangy.houseinspection.Drawing.DrawingView;
 import com.yangy.houseinspection.Drawing.IDrawingView;
+import com.yangy.houseinspection.Drawing.ProblemListBean;
+import com.yangy.houseinspection.Drawing.RoomListBean;
+import com.yangy.houseinspection.Drawing.WzBean;
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.PermissionListener;
 import com.yanzhenjie.permission.Rationale;
@@ -28,12 +33,16 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements PermissionListener, IDrawingView {
     private static Toast mToast;
-    private float proportion;//跟后台约定的标准比例
+    private float proportion = 0f;//跟后台约定的标准比例
     private String state;//问题状态
     private String X;//查看时传入的X轴坐标
     private String Y;//查看时传入的Y轴坐标
     private List<RoomListBean> areaCoordinate = new ArrayList<>();//房间坐标系
     private List<ProblemListBean> problemList = new ArrayList<>();//任务坐标系
+
+    private List<WzBean> wzList = new ArrayList<>();//存放处理后房间名称信息
+    private List<TaggingBean> taggingBeanList = new ArrayList<>();//存放处理后任务信息
+    public List<RoomListBean> roomListBeenEx = new ArrayList<>();//存放处理后的房间信息
 
     private DrawingView myView;
     private TextView tv_xian;
@@ -42,7 +51,6 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
     private String type = "";//see代表查看 modify代表修改  空代表问题录入
     private String graphPath = "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1493113149437&di=a83acefadf4ccdf5146c0a68dfd2ed35&imgtype=0&src=http%3A%2F%2Fpic.58pic.com%2F58pic%2F17%2F71%2F69%2F557d700b125ed_1024.jpg";
 
-
     private Bitmap bitmap = null;
     private Handler handler = new Handler() {
         @Override
@@ -50,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
             super.handleMessage(msg);
             if (msg.what == 0) {
                 if (bitmap != null) {
-                    if (!myView.setBitmapCoordinate(bitmap, areaCoordinate, problemList, proportion, type, X, Y, state)) {
+                    if (!myView.setBitmapCoordinate(bitmap, wzList, taggingBeanList, roomListBeenEx, type, X, Y, state)) {
                         showShort("显示图纸失败");
                     }
                 }
@@ -111,13 +119,18 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
             @Override
             public void run() {
                 bitmap = BitmapUtils.getBitmap(graphPath);
-                //跟后台约定宽度固定为1080进行不同尺寸屏幕的适配
-                float standard = (float) 1080.0;
-                //跟后台约定的标准比例
-                proportion = bitmap.getWidth() / standard;
+                if (bitmap != null) {
+                    //跟后台约定宽度固定为1080进行不同尺寸屏幕的适配
+                    float standard = (float) 1080.0;
+                    //跟后台约定的标准比例
+                    proportion = bitmap.getWidth() / standard;
+                    wzList = CoordinateUtils.getWzBean(areaCoordinate, proportion);
+                    taggingBeanList = CoordinateUtils.getTaggingBean(problemList, proportion);
+                    roomListBeenEx = CoordinateUtils.getRoomListBeanList(areaCoordinate, proportion);
 //                //根据标准比例换算过后的图片高度
 //                float imgHeight =bitmap.getHeight()/proportion;
-                handler.sendEmptyMessage(0);
+                    handler.sendEmptyMessage(0);
+                }
             }
         }).start();
     }
@@ -131,7 +144,8 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
     @Override
     public void input(float x_pos, float y_pos) {
         problemList.add(new ProblemListBean("任务" + problemList.size(), "0", new ProblemCoordinate("" + x_pos / proportion, "" + y_pos / proportion)));
-        myView.setRefresh(X, Y, state, problemList);
+        taggingBeanList = CoordinateUtils.getTaggingBean(problemList, proportion);
+        myView.setRefresh(X, Y, state, taggingBeanList);
     }
 
     /**
@@ -144,17 +158,17 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
     public void modify(float x_pos, float y_pos) {
         X = "" + x_pos;
         Y = "" + y_pos;
-        myView.setRefresh(X, Y, state, problemList);
+        myView.setRefresh(X, Y, state, taggingBeanList);
     }
 
     /**
      * 选中问题的回调
      *
-     * @param problemListBean 选中的问题的详细信息
+     * @param taggingBean 选中的问题的详细信息
      */
     @Override
-    public void problem(ProblemListBean problemListBean) {
-        showShort(problemListBean.getProblemId());
+    public void problem(TaggingBean taggingBean) {
+        showShort(taggingBean.getProblemId());
     }
 
     /**

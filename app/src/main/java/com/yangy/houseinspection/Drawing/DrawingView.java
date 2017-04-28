@@ -15,9 +15,7 @@ import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.yangy.houseinspection.ProblemListBean;
 import com.yangy.houseinspection.R;
-import com.yangy.houseinspection.RoomListBean;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,12 +35,9 @@ public class DrawingView extends View {
     private static final int AREA_SIZE = 10;//小圆点半径
     private float INIT_SCALE = 1.0f;//记录初始缩放倍数
     public int mode = 0;
-    //(跟后台约定的标准比例适配不同分辨率的手机)
     private List<WzBean> wzList = new ArrayList<>();//存放处理后房间名称的坐标
-    private List<DTZBean> dtzBeanList = new ArrayList<>();//存放处理后任务圆点的坐标
-
-    public List<RoomListBean> area_coordinate = new ArrayList<>();//后台返回的房间名称的原数据
-    private List<ProblemListBean> problemList = new ArrayList<>();//后台返回的任务圆点的原数据
+    private List<TaggingBean> taggingBeanList = new ArrayList<>();//存放处理后任务信息
+    public List<RoomListBean> roomListBeenEx = new ArrayList<>();//存放处理后的房间信息
     public String type;
     public String X;
     public String Y;
@@ -86,8 +81,6 @@ public class DrawingView extends View {
     private float imgHeight = 800;
     private float imgWidth = 480;
 
-    private float proportion;//跟后台约定的标准比例
-
     private float x_down = 0;//记录触摸时的坐标
     private float y_down = 0;//记录触摸时的坐标
     private float initDis = 1f;//两点按下时的距离
@@ -109,25 +102,6 @@ public class DrawingView extends View {
         init();
     }
 
-    /**
-     * 设置接口回调
-     *
-     * @param iDrawingView 接口对象
-     */
-    public void setInterfaceCallback(IDrawingView iDrawingView) {
-        presenter = iDrawingView;
-    }
-
-    /**
-     * 刷新视图   （演示用）
-     */
-    public void setRefresh(String X, String Y, String state, List<ProblemListBean> problemList) {
-        this.X = X;
-        this.Y = Y;
-        this.state = state;
-        this.problemList = problemList;
-        postInvalidate();
-    }
 
     private void init() {
         viewWidth = getMeasuredWidth();
@@ -143,142 +117,47 @@ public class DrawingView extends View {
         matrix = new Matrix();
     }
 
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        viewWidth = w;
-        viewHeight = h;
-
-        mBottomBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        mCanvas = new Canvas(mBottomBitmap);
+    /**
+     * 设置接口回调
+     *
+     * @param iDrawingView 接口对象
+     */
+    public void setInterfaceCallback(IDrawingView iDrawingView) {
+        presenter = iDrawingView;
     }
 
-    @Override
-    public void onDraw(Canvas canvas) {
-        canvas.drawColor(0x00FFFFFF);
-        mCanvas.setBitmap(mBottomBitmap);
-        if (mBitmap != null) {
-            mCanvas.drawBitmap(mBitmap, 0, 0, mBitmapPaint);
-        }
-        canvas.drawBitmap(mBottomBitmap, matrix, mBitmapPaint);
-
-        if (wzList.size() != 0) {
-            wzList.clear();
-        }
-        if (dtzBeanList.size() != 0) {
-            dtzBeanList.clear();
-        }
-        //房间名称
-        for (int i = 0; i < area_coordinate.size(); i++) {
-            wzList.add(new WzBean(area_coordinate.get(i).getRoomName(), area_coordinate.get(i).getCenterCoordinate().getX() * proportion, area_coordinate.get(i).getCenterCoordinate().getY() * proportion));
-        }
-        //任务圆点
-        if (!TextUtils.isEmpty(type)) {
-            //如果从问题录入进来直接查看点，因为录入的问题坐标点是适配后传过去的标注数据，所以不需要再次适配
-            dtzBeanList.add(new DTZBean("", (int) Float.parseFloat(X), (int) Float.parseFloat(Y)));
-        } else {
-            for (int i = 0; i < problemList.size(); i++) {
-                dtzBeanList.add(new DTZBean(problemList.get(i).getProblemId(), (int) (Float.parseFloat(problemList.get(i).getProblemCoordinate().getX()) * proportion), (int) (Float.parseFloat(problemList.get(i).getProblemCoordinate().getY()) * proportion)));
-            }
-        }
-
-        /** 房间名称 **/
-        mTextSizeN = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14 / values[0], getResources().getDisplayMetrics());//根据缩放系数计算需要绘制的房间名称的字体大小
-        mTextPaint.setTextSize(mTextSizeN);
-        for (WzBean wzBean : wzList) {
-            //绘制显示房间名称的底部背景
-            mTextPaint.setColor(Color.parseColor("#01B81B"));
-            mCanvas.drawRect(wzBean.getPosX() - (wzBean.getText().toString().length() * mTextSizeN) / 2 - 3, wzBean.getPosY() - (mTextSizeN / 2 + 3), wzBean.getPosX() + (wzBean.getText().toString().length() * mTextSizeN) / 2 + 3, wzBean.getPosY() + (mTextSizeN / 2 + 3), mTextPaint);
-            //绘制房间名称
-            mTextPaint.setColor(Color.parseColor("#FFFFFF"));
-            mCanvas.drawText(wzBean.getText(), wzBean.getPosX() - (wzBean.getText().toString().length() * mTextSizeN) / 2, wzBean.getPosY() + (mTextSizeN / 2 - 3), mTextPaint);
-        }
-        /** 绘制多边形 **/
-        mPaint.reset();//重置
-        mPaint.setColor(Color.parseColor("#F04D1C"));
-        mPaint.setStrokeWidth(5);
-        mPaint.setStyle(Paint.Style.STROKE);//设置空心
-        Path path1 = new Path();
-        float x = 0;//记录下起点的X轴坐标
-        float y = 0;//记录下起点的Y轴坐标
-        for (RoomListBean roomListBean : area_coordinate) {
-            for (int i = 0; i < roomListBean.getCoordinate().size(); i++) {
-                if (i == 0) {/**起点**/
-                    path1.moveTo(roomListBean.getCoordinate().get(i).getX() * proportion, roomListBean.getCoordinate().get(i).getY() * proportion);
-                    x = roomListBean.getCoordinate().get(i).getX() * proportion;
-                    y = roomListBean.getCoordinate().get(i).getY() * proportion;
-                } else {
-                    path1.lineTo(roomListBean.getCoordinate().get(i).getX() * proportion, roomListBean.getCoordinate().get(i).getY() * proportion);
-                    /**如果画完最后一个点  则终点跟起点相连封闭成矩形**/
-                    if (i == roomListBean.getCoordinate().size() - 1) {
-                        path1.lineTo(x, y);
-                    }
-                }
-            }
-        }
-        path1.close();
-        mCanvas.drawPath(path1, mPaint);
-        /** 任务圆点 **/
-        for (DTZBean dtzBean : dtzBeanList) {
-            Rect rect = new Rect(dtzBean.getPosX() - rectValue, dtzBean.getPoxY() - rectValue, dtzBean.getPosX() + rectValue, dtzBean.getPoxY() + rectValue);
-            if (!TextUtils.isEmpty(type)) {
-                //问题录入时查看的点
-                switch (state) {
-                    case "0"://待整改
-                        mCanvas.drawBitmap(pointBitMap, null, rect, null);
-                        break;
-                    case "1"://待销项
-                        mCanvas.drawBitmap(pointBitMapTwo, null, rect, null);
-                        break;
-                    case "2"://已销项
-                        mCanvas.drawBitmap(pointBitMapThere, null, rect, null);
-                        break;
-                    default://如果不是这3种状态
-                        mCanvas.drawBitmap(pointBitMap, null, rect, null);
-                        break;
-                }
-            } else {
-                for (int i = 0; i < problemList.size(); i++) {
-                    switch (problemList.get(i).getProblemState()) {
-                        case "0"://待整改
-                            mCanvas.drawBitmap(pointBitMap, null, rect, null);
-                            break;
-                        case "1"://待销项
-                            mCanvas.drawBitmap(pointBitMapTwo, null, rect, null);
-                            break;
-                        case "2"://已销项
-                            mCanvas.drawBitmap(pointBitMapThere, null, rect, null);
-                            break;
-                        default://如果不是这3种状态
-                            mCanvas.drawBitmap(pointBitMap, null, rect, null);
-                            break;
-                    }
-                }
-            }
-        }
+    /**
+     * 刷新视图   （演示用）
+     */
+    public void setRefresh(String X, String Y, String state, List<TaggingBean> taggingBeanList) {
+        this.X = X;
+        this.Y = Y;
+        this.state = state;
+        this.taggingBeanList = taggingBeanList;
+        postInvalidate();
     }
 
     /**
      * 显示图片
      *
-     * @param myImg       图片bitmap对象
-     * @param coordinate  房间坐标系
-     * @param problemList 任务坐标系
-     * @param proportion  跟后台约定的标准比例
-     * @param type        see代表查看
-     * @param X           查看时传入的X轴坐标
-     * @param Y           查看时传入的Y轴坐标
-     * @param state       问题状态
+     * @param myImg           图片bitmap对象
+     * @param wzList          存放处理后房间名称信息
+     * @param taggingBeanList 存放处理后任务信息
+     * @param roomListBeenEx  存放处理后的房间信息
+     * @param type            see代表查看 modify代表修改  空代表问题录入
+     * @param X               查看时传入的X轴坐标
+     * @param Y               查看时传入的Y轴坐标
+     * @param state           问题状态
      * @return true代表图片显示成功，false代表图片显示失败
      */
-    public boolean setBitmapCoordinate(Bitmap myImg, List<RoomListBean> coordinate, List<ProblemListBean> problemList, float proportion, String type, String X, String Y, String state) {
-        this.area_coordinate = coordinate;
-        this.problemList = problemList;
+    public boolean setBitmapCoordinate(Bitmap myImg, List<WzBean> wzList, List<TaggingBean> taggingBeanList, List<RoomListBean> roomListBeenEx, String type, String X, String Y, String state) {
+        this.wzList = wzList;
+        this.taggingBeanList = taggingBeanList;
+        this.roomListBeenEx = roomListBeenEx;
         this.type = type;
         this.X = X;
         this.Y = Y;
         this.state = state;
-        this.proportion = proportion;
 
         int width = myImg.getWidth();
         int height = myImg.getHeight();
@@ -286,10 +165,6 @@ public class DrawingView extends View {
         int tempH = myImg.getHeight();
         imgWidth = tempW;
         imgHeight = tempH;
-//        //跟后台约定宽度固定为1080进行不同尺寸屏幕的适配
-//        float standard = (float) 1080.0;
-//        //跟后台约定的标准比例
-//        proportion = myImg.getWidth()/standard;
 
         float nproportionale;
         float nyScale;
@@ -341,6 +216,101 @@ public class DrawingView extends View {
             return true;
         } else {
             return false;
+        }
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        viewWidth = w;
+        viewHeight = h;
+
+        mBottomBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        mCanvas = new Canvas(mBottomBitmap);
+    }
+
+    @Override
+    public void onDraw(Canvas canvas) {
+        canvas.drawColor(0x00FFFFFF);
+        mCanvas.setBitmap(mBottomBitmap);
+        if (mBitmap != null) {
+            mCanvas.drawBitmap(mBitmap, 0, 0, mBitmapPaint);
+        }
+        canvas.drawBitmap(mBottomBitmap, matrix, mBitmapPaint);
+
+        /** 房间名称 **/
+        mTextSizeN = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14 / values[0], getResources().getDisplayMetrics());//根据缩放系数计算需要绘制的房间名称的字体大小
+        mTextPaint.setTextSize(mTextSizeN);
+        for (WzBean wzBean : wzList) {
+            //绘制显示房间名称的底部背景
+            mTextPaint.setColor(Color.parseColor("#01B81B"));
+            mCanvas.drawRect(wzBean.getPosX() - (wzBean.getText().toString().length() * mTextSizeN) / 2 - 3, wzBean.getPosY() - (mTextSizeN / 2 + 3), wzBean.getPosX() + (wzBean.getText().toString().length() * mTextSizeN) / 2 + 3, wzBean.getPosY() + (mTextSizeN / 2 + 3), mTextPaint);
+            //绘制房间名称
+            mTextPaint.setColor(Color.parseColor("#FFFFFF"));
+            mCanvas.drawText(wzBean.getText(), wzBean.getPosX() - (wzBean.getText().toString().length() * mTextSizeN) / 2, wzBean.getPosY() + (mTextSizeN / 2 - 3), mTextPaint);
+        }
+        /** 绘制多边形 **/
+        mPaint.reset();//重置
+        mPaint.setColor(Color.parseColor("#F04D1C"));
+        mPaint.setStrokeWidth(5);
+        mPaint.setStyle(Paint.Style.STROKE);//设置空心
+        Path path1 = new Path();
+        float x = 0;//记录下起点的X轴坐标
+        float y = 0;//记录下起点的Y轴坐标
+        for (RoomListBean roomListBean : roomListBeenEx) {
+            for (int i = 0; i < roomListBean.getCoordinate().size(); i++) {
+                if (i == 0) {/**起点**/
+                    path1.moveTo(roomListBean.getCoordinate().get(i).getX(), roomListBean.getCoordinate().get(i).getY());
+                    x = roomListBean.getCoordinate().get(i).getX();
+                    y = roomListBean.getCoordinate().get(i).getY();
+                } else {
+                    path1.lineTo(roomListBean.getCoordinate().get(i).getX(), roomListBean.getCoordinate().get(i).getY());
+                    /**如果画完最后一个点  则终点跟起点相连封闭成矩形**/
+                    if (i == roomListBean.getCoordinate().size() - 1) {
+                        path1.lineTo(x, y);
+                    }
+                }
+            }
+        }
+        path1.close();
+        mCanvas.drawPath(path1, mPaint);
+        /** 任务圆点 **/
+        for (TaggingBean taggingBean : taggingBeanList) {
+            Rect rect = new Rect(taggingBean.getPosX() - rectValue, taggingBean.getPoxY() - rectValue, taggingBean.getPosX() + rectValue, taggingBean.getPoxY() + rectValue);
+            if (!TextUtils.isEmpty(type)) {
+                //问题录入时查看的点
+                switch (state) {
+                    case "0"://待整改
+                        mCanvas.drawBitmap(pointBitMap, null, rect, null);
+                        break;
+                    case "1"://待销项
+                        mCanvas.drawBitmap(pointBitMapTwo, null, rect, null);
+                        break;
+                    case "2"://已销项
+                        mCanvas.drawBitmap(pointBitMapThere, null, rect, null);
+                        break;
+                    default://如果不是这3种状态
+                        mCanvas.drawBitmap(pointBitMap, null, rect, null);
+                        break;
+                }
+            } else {
+                for (int i = 0; i < taggingBeanList.size(); i++) {
+                    switch (taggingBeanList.get(i).getProblemState()) {
+                        case "0"://待整改
+                            mCanvas.drawBitmap(pointBitMap, null, rect, null);
+                            break;
+                        case "1"://待销项
+                            mCanvas.drawBitmap(pointBitMapTwo, null, rect, null);
+                            break;
+                        case "2"://已销项
+                            mCanvas.drawBitmap(pointBitMapThere, null, rect, null);
+                            break;
+                        default://如果不是这3种状态
+                            mCanvas.drawBitmap(pointBitMap, null, rect, null);
+                            break;
+                    }
+                }
+            }
         }
     }
 
@@ -404,42 +374,39 @@ public class DrawingView extends View {
     }
 
     /**
-     * 通过线性规则计算点击的坐标点是否在房间区域范围内
+     * 点击事件监听
      *
-     * @param mPoints 各房间的坐标集合
-     * @param x_pos   点击的X轴坐标
-     * @param y_pos   点击的Y轴坐标
-     * @return 点击的位置所属房间的ID
+     * @param x_pos 点击的X轴坐标
+     * @param y_pos 点击的Y轴坐标
      */
-    public RoomListBean isPolygonContainsPoint(List<RoomListBean> mPoints, float x_pos, float y_pos) {
-        for (int i = 0; i < mPoints.size(); i++) {
-            int nCross = 0;
-            for (int j = 0; j < mPoints.get(i).getCoordinate().size(); j++) {
-                CoordinateBean p1 = mPoints.get(i).getCoordinate().get(j);
-                CoordinateBean p2 = mPoints.get(i).getCoordinate().get((j + 1) % mPoints.get(i).getCoordinate().size());
-                // 求解 y=p.y 与 p1p2 的交点
-                if (p1.getY() * proportion == p2.getY() * proportion) // p1p2 与 y=p0.y平行
-                    continue;
-                // 交点在p1p2延长线上
-                if (y_pos < Math.min(p1.getY() * proportion, p2.getY() * proportion))
-                    continue;
-                // 交点在p1p2延长线上
-                if (y_pos >= Math.max(p1.getY() * proportion, p2.getY() * proportion))
-                    continue;
-                // 求交点的 X 坐标
-                double x = (double) (y_pos - (p1.getY() * proportion)) * (double) (p2.getX() * proportion - p1.getX() * proportion)
-                        / (double) ((p2.getY() * proportion) - (p1.getY() * proportion)) + p1.getX() * proportion;
-                if (x > x_pos)
-                    nCross++; // 只统计单边交点
-            }
-            if ((nCross % 2 == 1)) {// 单边交点为奇数，点在多边形内
-                return mPoints.get(i);
+    private void onDrawClick(float x_pos, float y_pos) {
+        boolean hasDtz = false;
+        for (TaggingBean taggingBean : taggingBeanList) {//如果点击在任务圆点范围内
+            int left_top_x = taggingBean.getPosX() - AREA_SIZE;
+            int left_top_y = taggingBean.getPoxY() - AREA_SIZE;
+            int right_buttom_x = taggingBean.getPosX() + AREA_SIZE;
+            int right_buttom_y = taggingBean.getPoxY() + AREA_SIZE;
+            if (x_pos > left_top_x && x_pos < right_buttom_x && y_pos > left_top_y && y_pos < right_buttom_y) {
+                hasDtz = true;
+                for (int i = 0; i < taggingBeanList.size(); i++) {
+                    if (taggingBean.getProblemId().equals(taggingBeanList.get(i).getProblemId())) {
+                        presenter.problem(taggingBeanList.get(i));//问题回调
+                    }
+                }
             }
         }
-        return null;
+        if (!hasDtz) {
+            RoomListBean roomListBean = CoordinateUtils.isPolygonContainsPoint(roomListBeenEx, x_pos, y_pos);
+            if (roomListBean != null) {//如果不为空  代表点击在房间内
+                if (!TextUtils.isEmpty(type)) {
+                    presenter.modify(x_pos, y_pos);//修改问题坐标
+                } else {
+                    presenter.input(x_pos, y_pos);//录入回调
+                }
+            }
+        }
     }
 
-    //================================================================================
     //取两点的距离
     private float spacing(MotionEvent event) {
 
@@ -499,38 +466,5 @@ public class DrawingView extends View {
         postInvalidate();
     }
 
-    /**
-     * 点击事件监听
-     *
-     * @param x_pos 点击的X轴坐标
-     * @param y_pos 点击的Y轴坐标
-     */
-    private void onDrawClick(float x_pos, float y_pos) {
-        boolean hasDtz = false;
-        for (DTZBean dtzBean : dtzBeanList) {
-            int left_top_x = dtzBean.getPosX() - AREA_SIZE;
-            int left_top_y = dtzBean.getPoxY() - AREA_SIZE;
-            int right_buttom_x = dtzBean.getPosX() + AREA_SIZE;
-            int right_buttom_y = dtzBean.getPoxY() + AREA_SIZE;
-            if (x_pos > left_top_x && x_pos < right_buttom_x && y_pos > left_top_y && y_pos < right_buttom_y) {
-                System.out.println(dtzBean.getProblemId());
-                hasDtz = true;
-                for (int i = 0; i < problemList.size(); i++) {
-                    if (dtzBean.getProblemId().equals(problemList.get(i).getProblemId())) {
-                        presenter.problem(problemList.get(i));//问题回调
-                    }
-                }
-            }
-        }
-        if (!hasDtz) {
-            RoomListBean roomListBean = isPolygonContainsPoint(area_coordinate, x_pos, y_pos);
-            if (roomListBean != null) {//如果不为空  代表点击在房间内
-                if (!TextUtils.isEmpty(type)) {
-                    presenter.modify(x_pos, y_pos);//修改问题坐标
-                } else {
-                    presenter.input(x_pos, y_pos);//录入回调
-                }
-            }
-        }
-    }
+
 }

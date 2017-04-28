@@ -4,14 +4,15 @@ package com.yangy.houseinspection.Drawing;
  * 存放通过标准比例处理后任务圆点的坐标
  * Created by yangy on 2017/04/27.
  */
-public class DTZBean {
-    private String problemId;
+public class TaggingBean {
+    private String problemId;//问题ID
+    private String problemState;//问题状态
     private int posX;
     private int poxY;
 
-    public DTZBean(String problemId, int posX, int poxY) {
-
+    public TaggingBean(String problemId, String problemState, int posX, int poxY) {
         this.problemId = problemId;
+        this.problemState = problemState;
         this.posX = posX;
         this.poxY = poxY;
     }
@@ -22,6 +23,14 @@ public class DTZBean {
 
     public void setProblemId(String problemId) {
         this.problemId = problemId;
+    }
+
+    public String getProblemState() {
+        return problemState;
+    }
+
+    public void setProblemState(String problemState) {
+        this.problemState = problemState;
     }
 
     public int getPosX() {
@@ -40,13 +49,13 @@ public class DTZBean {
         this.poxY = poxY;
     }
 
-    public DTZBean(int posX, int poxY) {
+    public TaggingBean(int posX, int poxY) {
 
         this.posX = posX;
         this.poxY = poxY;
     }
 
-    public DTZBean() {
+    public TaggingBean() {
 
     }
 }

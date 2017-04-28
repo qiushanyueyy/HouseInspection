@@ -1,6 +1,4 @@
-package com.yangy.houseinspection;
-
-import com.yangy.houseinspection.Drawing.CoordinateBean;
+package com.yangy.houseinspection.Drawing;
 
 import java.io.Serializable;
 import java.util.List;
