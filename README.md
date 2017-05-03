@@ -5,7 +5,7 @@ Android custom drawing label controls, can be directly marked on the drawings
 当只有一个手指触摸时设置mode状态为DRAG，代表偏移操作。
 MotionEvent.ACTION_DOWN:获得触摸点坐标和触摸时间，
 MotionEvent.ACTION_MOVE:根据触摸点坐标和当前坐标计算偏移量设置偏移。 
-MotionEvent.ACTION_UP:如果触摸时间和抬起时间间隔小于200毫米，并且触摸点在图片上，则算作点击事件。
+MotionEvent.ACTION_UP:如果触摸时间和抬起时间间隔小于200毫秒，并且触摸点在图片上，则算作点击事件。
 当两只手指触摸时设置mode状态为ZOOM，代表缩放操作。
 MotionEvent.ACTION_POINTER_DOWN:记录按下时两点的距离（通过spacing()方法获得按下时两点的距离），
 MotionEvent.ACTION_MOVE:根据按下时记录的XY坐标和当前XY坐标计算偏移量，
