@@ -31,6 +31,13 @@ MotionEvent.ACTION_UP:记录缩放偏移之后的Matri信息，通过setEdge()�
 MainActivity中实现PermissionListener接口 
 调用andPermissions（）方法添加6.0权限
 ```
+# Permission
+```xml
+<uses-permission android:name="android.permission.WRITE_SETTINGS" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
+<uses-permission android:name="android.permission.INTERNET"/>
+```
 
 # 工具类和实体类
 ```java
