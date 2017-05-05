@@ -26,6 +26,7 @@ MotionEvent.ACTION_UP:记录缩放偏移之后的Matri信息，通过setEdge()�
 ```
 
 # 适配Android6.0权限
+[AndPermission](https://github.com/yanzhenjie/AndPermission)
 ```java
 MainActivity中实现PermissionListener接口 
 调用andPermissions（）方法添加6.0权限
