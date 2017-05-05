@@ -10,7 +10,7 @@ Android custom drawing label controls, can be directly marked on the drawings
 compile 'com.yanzhenjie:album:1.0.5'
 ```
 
-# 重写onTouchEvent()方法监听触摸事件：   
+# 手势实现：重写onTouchEvent()方法监听触摸事件：   
 ```java
 当只有一个手指触摸时设置mode状态为DRAG，代表偏移操作。
 MotionEvent.ACTION_DOWN:获得触摸点坐标和触摸时间，
