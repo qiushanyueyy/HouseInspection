@@ -4,7 +4,13 @@ Android custom drawing label controls, can be directly marked on the drawings
 ![image](https://github.com/qiushanyueyy/HouseInspection/blob/master/app/src/image/1.png)
 ![image](https://github.com/qiushanyueyy/HouseInspection/blob/master/app/src/image/2.png)
 
-重写onTouchEvent()方法监听触摸事件：                                    
+# Dependencies
+* Gradle：
+```groovy
+compile 'com.yanzhenjie:album:1.0.5'
+```
+
+# 重写onTouchEvent()方法监听触摸事件：                                    
 当只有一个手指触摸时设置mode状态为DRAG，代表偏移操作。
 MotionEvent.ACTION_DOWN:获得触摸点坐标和触摸时间，
 MotionEvent.ACTION_MOVE:根据触摸点坐标和当前坐标计算偏移量设置偏移。 
@@ -17,8 +23,7 @@ MotionEvent.ACTION_UP:记录缩放偏移之后的Matri信息，通过setEdge()�
 如果不在任务圆点范围内，则调用isPolygonContainsPoint（）方法判断点击是否在房间范围内，根据type判断状态，
 如果是修改问题坐标则调用接口回调的modify（）方法将信息传递给Activity，如果是录入问题则调用接口回调的input（）方法将信息传递给Activity。
 
-适配Android6.0权限
-build文件中引用compile 'com.yanzhenjie:permission:1.0.5'
+# 适配Android6.0权限
 MainActivity中实现PermissionListener接口 
 调用andPermissions（）方法添加6.0权限
 
