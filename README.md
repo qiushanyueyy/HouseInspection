@@ -1,7 +1,9 @@
 # HouseInspection
 Android custom drawing label controls, can be directly marked on the drawings
+
 ![image](https://github.com/qiushanyueyy/HouseInspection/blob/master/app/src/image/1.png)
 ![image](https://github.com/qiushanyueyy/HouseInspection/blob/master/app/src/image/2.png)
+
 重写onTouchEvent()方法监听触摸事件：                                    
 当只有一个手指触摸时设置mode状态为DRAG，代表偏移操作。
 MotionEvent.ACTION_DOWN:获得触摸点坐标和触摸时间，
