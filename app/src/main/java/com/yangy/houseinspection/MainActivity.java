@@ -31,7 +31,7 @@ import com.yanzhenjie.permission.RationaleListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements PermissionListener, IDrawingView {
+public class MainActivity extends AppCompatActivity implements PermissionListener {
     private static Toast mToast;
     private float proportion = 0f;//跟后台约定的标准比例
     private String state;//问题状态
@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
         setContentView(R.layout.activity_main);
         andPermissions(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);//适配6.0权限
         myView = (DrawingView) findViewById(R.id.myView);
-        myView.setInterfaceCallback(this);
+        myView.setInterfaceCallback(iDrawingView);//设置接口回调
         tv_xian = (TextView) findViewById(R.id.tv_xian);
         ll_bottom = (LinearLayout) findViewById(R.id.ll_bottom);
         /**因为手机的坐标原点是左上角，如果后台没有进行处理的话  可能返回的Y轴与要显示的效果正好相反  需要用图片高度减去Y轴得到正确的显示数据**/
@@ -134,42 +134,44 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
             }
         }).start();
     }
+    private IDrawingView iDrawingView = new IDrawingView() {
+        /**
+         * 录入问题的回调
+         *
+         * @param x_pos 选中的位置坐标
+         * @param y_pos 选中的位置坐标
+         */
+        @Override
+        public void input(float x_pos, float y_pos) {
+            problemList.add(new ProblemListBean("任务" + problemList.size(), "0", new ProblemCoordinate("" + x_pos / proportion, "" + y_pos / proportion)));
+            taggingBeanList = CoordinateUtils.getTaggingBean(problemList, proportion);
+            myView.setRefresh(X, Y, state, taggingBeanList);
+        }
 
-    /**
-     * 录入问题的回调
-     *
-     * @param x_pos 选中的位置坐标
-     * @param y_pos 选中的位置坐标
-     */
-    @Override
-    public void input(float x_pos, float y_pos) {
-        problemList.add(new ProblemListBean("任务" + problemList.size(), "0", new ProblemCoordinate("" + x_pos / proportion, "" + y_pos / proportion)));
-        taggingBeanList = CoordinateUtils.getTaggingBean(problemList, proportion);
-        myView.setRefresh(X, Y, state, taggingBeanList);
-    }
+        /**
+         * 修改问题坐标的回调
+         *
+         * @param x_pos 选中的位置坐标
+         * @param y_pos 选中的位置坐标
+         */
+        @Override
+        public void modify(float x_pos, float y_pos) {
+            X = "" + x_pos;
+            Y = "" + y_pos;
+            myView.setRefresh(X, Y, state, taggingBeanList);
+        }
 
-    /**
-     * 修改问题坐标的回调
-     *
-     * @param x_pos 选中的位置坐标
-     * @param y_pos 选中的位置坐标
-     */
-    @Override
-    public void modify(float x_pos, float y_pos) {
-        X = "" + x_pos;
-        Y = "" + y_pos;
-        myView.setRefresh(X, Y, state, taggingBeanList);
-    }
+        /**
+         * 选中问题的回调
+         *
+         * @param taggingBean 选中的问题的详细信息
+         */
+        @Override
+        public void problem(TaggingBean taggingBean) {
+            showShort(taggingBean.getProblemId());
+        }
 
-    /**
-     * 选中问题的回调
-     *
-     * @param taggingBean 选中的问题的详细信息
-     */
-    @Override
-    public void problem(TaggingBean taggingBean) {
-        showShort(taggingBean.getProblemId());
-    }
+    };
 
     /**
      * 短时间显示Toast
