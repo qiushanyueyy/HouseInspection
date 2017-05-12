@@ -42,6 +42,7 @@ public class DrawingView extends View {
     public String X;
     public String Y;
     public String state;
+    public boolean INIT = true;//是否是第一次加载
     /**
      * 绘制普通文字的画笔
      **/
@@ -203,10 +204,12 @@ public class DrawingView extends View {
                 width = (int) (width / nyScale);
                 tScale = nyScale;
             }
-            matrix.postScale(1 / tScale, 1 / tScale);
-            /**图片居中显示**/
-            matrix.postTranslate((viewWidth - width) / 2, (viewHeight - height) / 2);
-
+            if(INIT) {//图片居中显示，只调用一次。重复调用会偏移图片位置
+                INIT = false;
+                matrix.postScale(1 / tScale, 1 / tScale);
+                /**图片居中显示**/
+                matrix.postTranslate((viewWidth - width) / 2, (viewHeight - height) / 2);
+            }
             saveMatrix.set(matrix);
             startMatrix.set(matrix);
             getImageViewIneerSize(true);
